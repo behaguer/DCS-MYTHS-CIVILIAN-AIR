@@ -20,9 +20,26 @@ local CONFIG = {
     -- Spawn limits
     maximum_spawn_limit = 60,            -- Maximum number of aircraft to spawn from the feed
 
-    -- Aircraft defaults (the feed carries no type info, so use one configurable model)
-    aircraft_type = "An-26B",           -- DCS aircraft model used to represent feed flights
+    -- Aircraft defaults (the feed carries no type info, so pick a model based on origin country)
+    aircraft_type = "An-26B",           -- Default DCS aircraft model used to represent feed flights
     country = country.id.USA,           -- Spawning country/coalition
+
+    -- Aircraft types available to spawn, keyed by origin country. Adds type variety beyond the
+    -- default. "default" is the fallback for any country not listed here.
+    aircraft_types = {
+        ["default"] = "An-26B",
+        ["China"]   = "C-130J-30",
+        ["United States"] = "KC-135",
+        ["Germany"] = "C-130J-30",
+        ["Singapore"] = "C-130J-30",
+    },
+
+    -- Liveries keyed by origin country ("default" is the fallback livery_id).
+    aircraft_liveries = {
+        ["default"] = "Delta Air Lines",  -- default skin for C-130J-30 from any unlisted country
+        ["China"]   = "Air China",        -- China-origin aircraft wear the Chinese livery
+        ["Germany"] = "Luftwaffe BATS, BA 105",   -- German-origin aircraft wear the BA 105 skin
+    },
     default_cruise_speed = 150,         -- Cruise speed in m/s used when feed velocity is missing
 
     -- Filtering
@@ -547,6 +564,30 @@ end
 -- =====================================================================================
 
 
+--- Resolves the DCS aircraft type for a flight based on its origin country.
+-- Falls back to CONFIG.aircraft_type when the origin country is not mapped.
+-- @param flight Flight record from parseFlight()
+-- @return string DCS aircraft model name
+local function resolveAircraftType(flight)
+    local country = flight.origin_country
+    if country and CONFIG.aircraft_types[country] then
+        return CONFIG.aircraft_types[country]
+    end
+    return CONFIG.aircraft_type
+end
+
+--- Resolves the livery_id for a flight based on its origin country.
+-- Falls back to the configured default livery when the origin country is not mapped.
+-- @param flight Flight record from parseFlight()
+-- @return string DCS livery id
+local function resolveAircraftLivery(flight)
+    local country = flight.origin_country
+    if country and CONFIG.aircraft_liveries[country] then
+        return CONFIG.aircraft_liveries[country]
+    end
+    return CONFIG.aircraft_liveries["default"] or "default"
+end
+
 --- Spawns a single civilian aircraft from a processed flight record.
 -- Wrapped in pcall so a single invalid/out-of-map flight does not abort the whole feed pass.
 -- @param flight Flight record from parseFlight()
@@ -600,7 +641,7 @@ local function spawnCIVAIRAsset(flight)
         }
 
         local unit = {
-            ["type"] = CONFIG.aircraft_type,
+            ["type"] = resolveAircraftType(flight),
             ["unitId"] = unitId,
             ['callsign'] = {
                 ["name"] = unitName,
@@ -609,7 +650,7 @@ local function spawnCIVAIRAsset(flight)
                 ["tone"] = 0
             },
             ["skill"] = "High",
-            ["livery_id"] = "default",
+            ["livery_id"] = resolveAircraftLivery(flight),
             ["onboard_num"] = string.format("%03d", 15 + CIVAIR_STATE.groupCounter),
             ["y"] = point.z,
             ["x"] = point.x,
@@ -629,7 +670,7 @@ local function spawnCIVAIRAsset(flight)
 
         groupData.units[1] = unit
 
-        debugMsg("Spawning " .. CONFIG.aircraft_type .. " '" .. flight.callsign .. "' at LAT=" .. flight.lat .. ", LON=" .. flight.lon ..
+        debugMsg("Spawning " .. resolveAircraftType(flight) .. " '" .. flight.callsign .. "' at LAT=" .. flight.lat .. ", LON=" .. flight.lon ..
                  " -> X=" .. math.floor(point.x) .. ", Z=" .. math.floor(point.z) .. ", alt=" .. math.floor(flight.altitude) ..
                  "m, hdg=" .. math.floor(flight.headingDeg) .. "°, spd=" .. math.floor(flight.speed) .. " m/s")
 
