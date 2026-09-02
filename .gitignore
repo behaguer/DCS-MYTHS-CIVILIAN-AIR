@@ -1,0 +1,6 @@
+# Generated flight feed data (regenerated on every run; must not be committed)
+dcs_filtered_flights_*.json
+
+# Python cache
+__pycache__/
+*.pyc
