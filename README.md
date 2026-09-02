@@ -1,4 +1,4 @@
-![DCS CIVILIAN AIR Script for Eagle Dynamics Digital Combat Simulator.](/assets/images/Header.png)
+![DCS CIVILIAN AIR Script for Eagle Dynamics Digital Combat Simulator.](/assets/images/Header.jpg)
 
 # DCS CIVILIAN AIR v0.1
 DCS CIVILIAN AIR is a DCS spawning system for DCS World to enable realtime based civilian aircraft into your dcs mission. This script enables dynamic spawning of civilian passenger aircraft via a api based stream feed from The OpenSky Network API and adsb.lol API. To enable this script the DCS mission editor must have access to the feed file so you will need to enable `io` and `lfs` in DCS. and to process the feed you will need to have Python.
