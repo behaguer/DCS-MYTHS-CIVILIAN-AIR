@@ -60,13 +60,13 @@ from disk, so you must allow file access:
 1. Open `<DCS Installation>\Scripts\MissionScripting.lua`
 2. Find (near the bottom) the sanitize module section:
    ```lua
-   --sanitizeModule('io')
-   --sanitizeModule('lfs')
+   sanitizeModule('io')
+   sanitizeModule('lfs')
    ```
-3. **Uncomment** both lines by removing the `--` (change them to `sanitizeModule('io')` and `sanitizeModule('lfs')`).
+3. **Uncomment** both lines by addomg the `--` (change them to `--sanitizeModule('io')` and `--sanitizeModule('lfs')`).
 4. Save the file.
-> This grants DCS scripts file read access. It is required, otherwise the script logs
-> "ERROR: DCS file-system (fs) access is not enabled".
+> This grants DCS scripts file read access. SECURITY NOTE: this does allow access to the file system so only run DCS scripts you can trust.
+> For this script it is required, otherwise the script logs the error. "ERROR: DCS file-system (fs) access is not enabled".
 
 ### Step 2 - Install Python Dependencies
 The feed generator uses the `requests` library:
