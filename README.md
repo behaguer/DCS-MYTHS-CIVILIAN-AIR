@@ -1,2 +1,69 @@
-# DCS-MYTHS-CIVILIAN-AIR
-A DCS mission editor .lua script that aims to add civilian like aircraft to your mission based on current air traffic data.
+![DCS CIVILIAN AIR Script for Eagle Dynamics Digital Combat Simulator.](/assets/images/Header.png)
+
+# DCS CIVILIAN AIR v0.1
+DCS CIVILIAN AIR is a DCS spawning system for DCS World to enable realtime based civilian aircraft into your dcs mission. This script enables dynamic spawning of civilian passenger aircraft via a api based stream feed from The OpenSky Network API and adsb.lol API. To enable this script the DCS mission editor must have access to the feed file so you will need to enable DS and IO in DCS. and to process the feed you will need to have Python.
+
+## Features
+
+- **API Feed data retrieval:** Access real-time data from The OpenSky Network API and adsb.lol
+- **Aircraft Spawning**: Aircradt will spawn aircraft based on the feed data, including callsigns, speeds, altitudes, and more.
+- **Configurable Settings**: Choose how often to poll for data and other settings to customize the behavior of your spawning
+- **Spawn Limits**: Configurable maximum limits for each asset type to prevent over-spawning
+- **Garbage Collection:** Automatically remove spawned aircraft when they are no longer needed to prevent clutter in the mission editor
+- **Asset Tracking**: System tracks active assets and cleans up units automatically
+- **Advanced Debugging and Logging**: Detailed logging and debugging tools for troubleshooting issues
+
+
+## Configuration
+
+Edit the CONFIG section at the top of `HVAA.lua`:
+
+```lua
+local CONFIG = {
+    debug = false,              -- Enable debug messages
+    production_mode = false,    -- Reduce overhead and debug output
+
+    -- Feature toggles
+    enable_api = true,        -- Enable/disable AWACS spawning
+    api_feed_path = "dcs_filtered_flights_caucasus.json",         -- The full path to the feed file (e.g. "dcs_filtered_flights_caucasus.json")
+
+```
+
+## Setup
+
+
+### Spawn Limits
+- System enforces configured spawn limits per asset type
+- Attempting to exceed limits displays error message with current counts
+- Dead/destroyed aircraft are automatically removed from tracking
+
+
+## Troubleshooting
+
+### Debug Mode
+Set `CONFIG.debug = true` to enable detailed logging and on-screen messages.
+
+### Testing the python script
+To run the python script you can call it directly as the map as the first parameter, e.g.
+`python fetch_flights.py caucasus` this will create a file `dcs_filtered_flights_caucasus.json` with the filtered flight data.
+
+
+### Understanding the data
+API explaination of the fetched json can be found here - https://openskynetwork.github.io/opensky-api/rest.html#all-state-vectors
+
+### Common Issues
+1. **Aircraft not spawning**: Check feed file path and file format, ensure file exists and naming pattern matches exactly
+2. **Wrong callsigns**: Verify CONFIG callsign settings match available DCS callsigns
+3. **Spawned aircraft not tracked**: Check feed file path is correct 
+
+## Requirements
+
+- DCS World (any recent version)
+- IO and fs enabled in DCS
+- Python 3.7 or higher
+- JSON library (e.g., `json` in Python)
+- Mission with scripting enabled
+
+## Compatibility
+
+- Only tested on Marianas Island, but should work for other missions as well.

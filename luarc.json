@@ -1,0 +1,50 @@
+{
+    "$schema": "https://raw.githubusercontent.com/LuaLS/vscode-lua/master/setting/schema.json",
+    "runtime": {
+        "version": "Lua 5.1"
+    },
+    "workspace": {
+        "checkThirdParty": false,
+        "ignoreDir": [
+        ],
+        "library": [
+        ]
+    },
+    "diagnostics": {
+        "globals": [
+            "world",
+            "ctld",
+            "env",
+            "trigger",
+            "timer",
+            "land",
+            "Unit",
+            "Group",
+            "world",
+            "coalition",
+            "mist",
+            "STTS",
+            "Spot",
+            "missionCommands",
+            "Object",
+            "Airbase",
+            "StaticObject",
+            "coord",
+            "cutOff",
+            "topo",
+            "country",
+            "atmosphere",
+            "AI",
+            "Controller",
+            "x",
+            "lfs",
+            "sVal",
+            "passUnits",
+            "unitId",
+            "typeBase",
+            "PlayerTrackerInstance",
+            "dblog"
+        ],
+        "ignoredFiles": "Disable"
+    }
+}
