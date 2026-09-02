@@ -10,6 +10,7 @@ DCS CIVILIAN AIR is a DCS spawning system for DCS World to enable realtime based
 - **Configurable Settings**: Choose how often to poll for data and other settings to customize the behavior of your spawning
 - **Spawn Limits**: Configurable maximum limits for each asset type to prevent over-spawning
 - **Garbage Collection:** Automatically remove spawned aircraft when they are no longer needed to prevent clutter in the mission editor
+- **Live Correction:** Already-spawned aircraft are re-checked against the feed each cycle. If they drift off-track, change heading or descend away from the feed altitude, they are re-tasked to return to the real flight path and hold altitude
 - **Asset Tracking**: System tracks active assets and cleans up units automatically
 - **Advanced Debugging and Logging**: Detailed logging and debugging tools for troubleshooting issues
 
@@ -39,11 +40,77 @@ local CONFIG = {
     -- Filtering
     min_altitude = 100,         -- Min altitude (m) to consider a flight airborne
     ignore_callsigns = {},      -- Optional callsigns to never spawn
+
+    -- In-game update thresholds: correct an already-spawned plane when the real
+    -- position/direction/altitude in the feed has deviated from where DCS is flying it.
+    -- Thresholds are checked on every monitor cycle, so an off-track/descending plane is
+    -- corrected repeatedly until it holds the feed's position, heading and altitude.
+    update_position_threshold_m = 3000,  -- Horizontal distance (m) before correcting position
+    update_heading_threshold_deg = 15,   -- Heading difference (deg) before correcting direction
+    update_altitude_threshold_m = 100,   -- Altitude difference (m) before correcting altitude
 }
 ```
 
 ## Setup
 
+### Step 1 - Enable DCS File-System Access
+DCS disables the `io` / `lfs` modules by default. The script needs to read the feed file
+from disk, so you must allow file access:
+
+1. Open `<DCS Installation>\Scripts\MissionScripting.lua`
+2. Find (near the bottom) the sanitize module section:
+   ```lua
+   --sanitizeModule('io')
+   --sanitizeModule('lfs')
+   ```
+3. **Uncomment** both lines by removing the `--` (change them to `sanitizeModule('io')` and `sanitizeModule('lfs')`).
+4. Save the file.
+> This grants DCS scripts file read access. It is required, otherwise the script logs
+> "ERROR: DCS file-system (fs) access is not enabled".
+
+### Step 2 - Install Python Dependencies
+The feed generator uses the `requests` library:
+
+```bash
+pip install requests
+```
+
+### Step 3 - Generate the Flight Feed
+From the project folder, run one of the feed generators, passing the map name:
+
+```bash
+# OpenSky Network feed
+python fetch_flights.py caucasus
+
+# adsb.lol feed (alternative source, no API key required)
+python fetch_flights_adsblol.py caucasus
+```
+
+Supported maps: `caucasus`, `syria`, `marianas`.
+
+This writes a filtered flight feed to `dcs_filtered_flights_<map>.json`.
+
+> **Scheduling:** Flight data goes stale within minutes. Re-run the generator regularly
+> (e.g. a Scheduled Task / cron every 5 minutes) so the feed reflects current aircraft.
+
+### Step 4 - Point the Script at the Feed
+In `CIVILIAN-AIR.lua`, set `CONFIG.api_feed_path` to the absolute path of the generated
+feed JSON (the file above), e.g.:
+
+```lua
+api_feed_path = "C:\\YourMissionScriptFolder\\dcs_filtered_flights_caucasus.json",
+```
+
+> The path example is a placeholder for privacy. Set it to the real location on your
+> machine. A common approach is to symlink your real feed file into a dedicated folder
+> and keep that generic path in the committed config.
+
+### Step 5 - Run the Mission
+- Save / load a mission with `CIVILIAN-AIR.lua` attached (or a mission that includes it).
+- At mission start the script reads the feed and starts spawning civilian aircraft.
+- It re-reads the feed every `CONFIG.api_feed_monitor_frequency` seconds, spawning new
+  aircraft, live-correcting existing ones, and garbage-collecting planes that have left
+  the feed.
 
 ### Spawn Limits
 - System enforces configured spawn limits per asset type
@@ -59,6 +126,8 @@ Set `CONFIG.debug = true` to enable detailed logging and on-screen messages.
 ### Testing the python script
 To run the python script you can call it directly as the map as the first parameter, e.g.
 `python fetch_flights.py caucasus` this will create a file `dcs_filtered_flights_caucasus.json` with the filtered flight data.
+
+An alternative feed source (adsb.lol, no API key) is available via `python fetch_flights_adsblol.py caucasus`. Both scripts write to the same output file in the same OpenSky-compatible format, so the DCS script works with either one.
 
 
 ### Understanding the data
