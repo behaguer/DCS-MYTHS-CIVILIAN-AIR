@@ -6,7 +6,7 @@ DCS CIVILIAN AIR is a DCS spawning system for DCS World to enable realtime based
 ## Features
 
 - **API Feed data retrieval:** Access real-time data from The OpenSky Network API and adsb.lol
-- **Aircraft Spawning**: Aircradt will spawn aircraft based on the feed data, including callsigns, speeds, altitudes, and more.
+- **Aircraft Spawning**: Aircraft will spawn based on the feed data, including callsigns, speeds, altitudes, and more.
 - **Configurable Settings**: Choose how often to poll for data and other settings to customize the behavior of your spawning
 - **Spawn Limits**: Configurable maximum limits for each asset type to prevent over-spawning
 - **Garbage Collection:** Automatically remove spawned aircraft when they are no longer needed to prevent clutter in the mission editor
@@ -138,14 +138,3 @@ API explaination of the fetched json can be found here - https://openskynetwork.
 2. **Wrong callsigns**: Verify CONFIG callsign settings match available DCS callsigns
 3. **Spawned aircraft not tracked**: Check feed file path is correct 
 
-## Requirements
-
-- DCS World (any recent version)
-- IO and fs enabled in DCS
-- Python 3.7 or higher
-- JSON library (e.g., `json` in Python)
-- Mission with scripting enabled
-
-## Compatibility
-
-- Only tested on Marianas Island, but should work for other missions as well.
