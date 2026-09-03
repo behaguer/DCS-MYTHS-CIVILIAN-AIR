@@ -7,7 +7,7 @@ OPENSKY_URL = "https://opensky-network.org/api/states/all"
 
 # Define approximate bounding boxes [min_lat, max_lat, min_lon, max_lon]
 DCS_MAPS = {
-    "caucasus": {"min_lat": 40.0, "max_lat": 46.0, "min_lon": 36.0, "max_lon": 50.0},
+    "caucasus": {"min_lat": 40.5, "max_lat": 45.0, "min_lon": 35.0, "max_lon": 45.0},
     "syria": {"min_lat": 32.0, "max_lat": 38.0, "min_lon": 33.0, "max_lon": 42.0},
     "marianas": {"min_lat": 13.0, "max_lat": 16.0, "min_lon": 144.0, "max_lon": 146.5}
 }
