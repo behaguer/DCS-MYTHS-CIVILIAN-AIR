@@ -22,7 +22,7 @@ local CONFIG = {
 
     -- Aircraft defaults (the feed carries no type info, so pick a model based on origin country)
     aircraft_type = "An-26B",           -- Default DCS aircraft model used to represent feed flights
-    country = country.id.USA,           -- Spawning country/coalition
+    country = country.id.UN_PEACEKEEPERS,           -- Spawning country/coalition (neutral countries such as Switzerland/UN Peacekeepers spawn as neutral units)
 
     -- Aircraft types available to spawn, keyed by origin country. Adds type variety beyond the
     -- default. "default" is the fallback for any country not listed here.
@@ -604,6 +604,14 @@ local function spawnCIVAIRAsset(flight)
         -- Convert geographic lat/lon to DCS local coordinates
         local point = coord.LLtoLO(flight.lat, flight.lon, flight.altitude)
 
+        -- DCS world frame: x=north, z=east, y=up. Place a second waypoint far ahead along the
+        -- feed heading so the aircraft actually flies that bearing (a single waypoint gives DCS
+        -- no onward direction to follow).
+        local hdgRad = math.rad(flight.headingDeg)
+        local fwd = 50 * 1000 -- 50km ahead
+        local wp2North = point.x + math.cos(hdgRad) * fwd
+        local wp2East  = point.z + math.sin(hdgRad) * fwd
+
         -- Increment group counter and build names
         CIVAIR_STATE.groupCounter = CIVAIR_STATE.groupCounter + 1
         local groupName = flight.callsign
@@ -627,6 +635,16 @@ local function spawnCIVAIRAsset(flight)
                         ["speed"] = flight.speed,
                         ["y"] = point.z,
                         ["x"] = point.x,
+                        ["speed_locked"] = true,
+                    },
+                    [2] = {
+                        ["alt"] = flight.altitude,
+                        ["type"] = "Turning Point",
+                        ["action"] = "Turning Point",
+                        ["alt_type"] = "BARO",
+                        ["speed"] = flight.speed,
+                        ["y"] = wp2East,
+                        ["x"] = wp2North,
                         ["speed_locked"] = true,
                     },
                 }
@@ -755,7 +773,9 @@ local function updateCIVAIRAsset(callsign, flight, assetData)
     local vel = unit:getVelocity()
     local curHdg = 0
     if vel and (math.abs(vel.x) > 0.01 or math.abs(vel.z) > 0.01) then
-        curHdg = math.deg(math.atan2(vel.x, vel.z))
+        -- DCS world frame: vel.x = north component, vel.z = east component.
+        -- Compass heading (0=North, 90=East) = atan2(east, north) = atan2(vel.z, vel.x)
+        curHdg = math.deg(math.atan2(vel.z, vel.x))
         if curHdg < 0 then curHdg = curHdg + 360 end
     end
     local curAlt = pos.y
@@ -790,11 +810,12 @@ local function updateCIVAIRAsset(callsign, flight, assetData)
     -- Rebuild a holding route at the new feed position, altitude, heading and speed
     local point = coord.LLtoLO(flight.lat, flight.lon, flight.altitude)
 
-    -- Place the second waypoint far ahead along the feed heading so the plane cruises level
+    -- Place the second waypoint far ahead along the feed heading so the plane cruises level.
+    -- DCS world frame: x=north, z=east, so north offset = cos(heading), east offset = sin(heading).
     local hdgRad = math.rad(flight.headingDeg)
     local fwd = 50 * 1000 -- 50km ahead
-    local x2 = point.x + math.sin(hdgRad) * fwd
-    local z2 = point.z + math.cos(hdgRad) * fwd
+    local x2 = point.x + math.cos(hdgRad) * fwd
+    local z2 = point.z + math.sin(hdgRad) * fwd
 
     local newRoute = {
         ["points"] = {
